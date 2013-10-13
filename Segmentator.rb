@@ -144,11 +144,18 @@ private
     else
       #add seg to the end of the list
       segnum = @legend[seg]
-      last_in_list = @compression_order.find{|key, hash| hash["next"].nil?}
-      last_key = last_in_list.keys.first
-      @compression_order[segnum]["prev"] = last_key
-      @compression_order[segnum]["next"] = nil
-      @compression_order[last_key]["next"] = segnum
+
+      if @compression_order.keys.length > 0
+        last_in_list = @compression_order.find{|key, hash| hash["next"].nil?}
+        last_key = last_in_list.keys.first
+        @compression_order[segnum] = {"next" => nil, prev => nil}
+        @compression_order[segnum]["prev"] = last_key
+        @compression_order[segnum]["next"] = nil
+        @compression_order[last_key]["next"] = segnum
+      else
+        @compression_order[segnum] = {"next" => nil, "prev" => nil}
+      end
+
       #seglistposition ← lookup seg in the ordereddictionary
       indexes = Hash[@compression_order.map.with_index.to_a]
       seglistposition = indexes[segnum]
