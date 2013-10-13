@@ -1,3 +1,4 @@
+
 class Segmentator
 #legend - a simple hash
 #compression_order - an ordereddict (nested hash)
@@ -59,10 +60,10 @@ private
         caluclate_compression(c)
       #endif
       end
-    elsif @seg.length < k
+    elsif @seg.length < @k
       #append c to seg
       @seg << c
-    elsif @seg.length == k
+    elsif @seg.length == @k
       #calculate_compression(seg)
       calculate_compression(@seg)
       #seg ← ‘’
