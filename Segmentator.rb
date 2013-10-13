@@ -20,14 +20,14 @@ class Segmentator
   #void stream_characters(File source)
   def stream_characters(filename)
     #if the source exists
-    if File.exists?(filename)
+    if File.exists?(@file)
       #open the source
       f = File.open(@file)
+      puts "opened file"
       #stream each character to build_segment(char c)
       f.readlines.each.each {|c| build_segment(c)}
-      #*Added code to compensate for EOF character*
+      #*Added code to compensate for no EOF character*
       calculate_compression(@seg) unless @seg.length == 0
-      File.close(@file)
     #else
     else
       #raise an error that “No source was found”
@@ -39,6 +39,7 @@ class Segmentator
   #end
   end
 
+private
 #Builds the newest segment value character by character and checks for punctuation characters
 #  Runtime: O(n)
 #	 Constant building of the segments
@@ -47,7 +48,7 @@ class Segmentator
 #void build_segment(char c)
   def build_segment(c)
     #if c is a punctuation character
-    if c =~ /[[:punct:]]/ || c == ' ' || c == '\n'
+    if c =~ /[[:punct:]]|\s/
       #if |seg| != 0
       if @seg.length != 0
         #calculate_compression(seg)
