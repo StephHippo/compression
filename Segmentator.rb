@@ -163,12 +163,14 @@ private
   #
   #  void print_output(seglistposition)
   def print_output(seglistposition)
+    str = ""
     #print legend[seg]
-    puts "Input: #{@legend[@seg]}\n"
+    str << "#{@legend[@seg]}\t\t"
     #print_compression_order()
-    print_compression_order
+    str << build_list_string
     #print seglistposition
-    puts "Output: #{seglistposition}."
+    str << "\t\t#{seglistposition}\n"
+    puts str
   #end
   end
 
@@ -191,18 +193,20 @@ private
   #Traverses the ordereddict to give the full compression order
   #Runtime: O(n) where n is the number of segments in the list.
 
-  #void print_compression_order()
-  def print_compression_order
+  #TODO: Remove duplicated "puts nodenum"
+  #void print_list_string()
+  def build_list_string
     #beginning with the key with a previous value of null
+    str = ''
     head = @compression_order.find{|key, hash| hash["prev"].nil?}
     nodenum = head.first
     while !(@compression_order[nodenum]["next"].nil?)
       #Traverse the double linked list by following the next value
-      puts nodenum
+      str << nodenum.to_s
       #print next values until end of list is reached
       nodenum = @compression_order[nodenum]["next"]
     end
-    puts nodenum
+    str<< nodenum.to_s
     #end
   end
 end
