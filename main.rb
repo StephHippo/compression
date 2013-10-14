@@ -13,8 +13,7 @@ begin
     file = gets
     file = file.delete("\n")
   end
-  puts "k is #{k} and file is #{file}"
-  puts "Found file" if File.exists?(file)
+
   segmentator = Segmentator.new(k, file)
   segmentator.stream_characters(file)
 

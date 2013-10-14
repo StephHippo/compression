@@ -1,10 +1,8 @@
-
 class Segmentator
 #legend - a simple hash
 #compression_order - an ordereddict (nested hash)
 #seg - a mutable string
 #segvalue - counter for tallying the placeholders in the legend hash
-
 
   def initialize(k, filename)
     @k = k
@@ -24,7 +22,6 @@ class Segmentator
     if File.exists?(@file)
       #open the source
       f = File.open(@file)
-      puts "opened file"
       #stream each character to build_segment(char c)
       f.each_char {|c| build_segment(c)}
       #*Added code to compensate for no EOF character*
@@ -47,7 +44,7 @@ private
 #	 Constant building of the segments
 #  calculate_compression runs in linear time as explained below
 
-#void build_segment(char c)
+  #void build_segment(char c)
   def build_segment(c)
     #if c is a punctuation character
     if c =~ /[[:punct:]]|\s/
@@ -66,22 +63,13 @@ private
       @seg << c
     elsif @seg.length == @k
       #calculate_compression(seg)
-      puts "calculating the compression for #{@seg}"
       calculate_compression(@seg)
-      #seg ← ‘’
+      #seg ← c
       @seg = c
     #endif
     end
   end
 
-  # Was anticipating an EOF character like in C, forgetting that it's not a thing in ruby
-  # This pseudocode has been implemented inside the stream_characters method
-  #  at the end of the input
-  #  if |seg| != 0
-  #  calculate_compression(seg)
-  #  endif
-  #  end
-  #
   # Whenever you add to the legend, you must also update the compression order in the ordered dictionary, so encapsulated to reduce duplicated code.
   # Runtime: O(n)
   #  Constant Hash insert for legend
