@@ -189,18 +189,6 @@ private
     str = ''
     traverse_list(nil) {|nodenum| str << nodenum.to_s}
     str
-    ##beginning with the key with a previous value of null
-    #str = ''
-    #head = @compression_order.find{|key, hash| hash["prev"].nil?}
-    #nodenum = head.first
-    #while !(@compression_order[nodenum]["next"].nil?)
-    #  #add string to the list
-    #  str << nodenum.to_s
-    #  #move down the linked list
-    #  nodenum = @compression_order[nodenum]["next"]
-    #end
-    #str<< nodenum.to_s
-    ##end
   end
 
   def find_seg_list_position(segnum)
@@ -210,30 +198,30 @@ private
     traverse_list(segnum) {|nodenum| pos += 1}
     #return the position
     pos
-
-
-    ##beginning with the key with a previous value of null
-    #pos = 0
-    #head = @compression_order.find{|key, hash| hash["prev"].nil?}
-    #nodenum = head.first
-    #while (@compression_order[nodenum]["next"] != segnum)
-    #  #increase the position counter
-    #  pos += 1
-    #  #move down the linked list
-    #  nodenum = @compression_order[nodenum]["next"]
-    #end
-    #pos += 1
-    ##end
   end
 
   def traverse_list(compvalue)
-
+    #get the head node number
     head = @compression_order.find{|key, hash| hash["prev"].nil?}
     nodenum = head.first
+
+    #This pattern breaks the compression order. Requires an additional yield
+    #Chose to go with the code with one less yielding
+
+    #while true
+    #  nodenum = @compression_order[nodenum]["next"]
+    #  break if nodenum == compvalue
+    #  yield nodenum
+    #end
+    #yield nodenum
+
+    #walk down the next nodes until there you match the comparing value
     while(@compression_order[nodenum]["next"] != compvalue)
       yield nodenum
       nodenum = @compression_order[nodenum]["next"]
     end
+
     yield nodenum
+
   end
 end
