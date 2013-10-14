@@ -26,9 +26,10 @@ class Segmentator
       f = File.open(@file)
       puts "opened file"
       #stream each character to build_segment(char c)
-      f.readlines.each.each {|c| build_segment(c)}
+      f.each_char {|c| build_segment(c)}
       #*Added code to compensate for no EOF character*
       calculate_compression(@seg) unless @seg.length == 0
+      print_legend
     #else
     else
       #raise an error that “No source was found”
@@ -57,7 +58,7 @@ private
         #seg ← ‘’
         @seg = ''
         #calculate_compression(c)
-        caluclate_compression(c)
+        calculate_compression(c)
       #endif
       end
     elsif @seg.length < @k
@@ -65,9 +66,10 @@ private
       @seg << c
     elsif @seg.length == @k
       #calculate_compression(seg)
+      puts "calculating the compression for #{@seg}"
       calculate_compression(@seg)
       #seg ← ‘’
-      @seg = ''
+      @seg = c
     #endif
     end
   end
@@ -87,10 +89,10 @@ private
   #
   #  void calculate_compression(seg)
   def calculate_compression(seg)
-    #add_to_legend(seg)				(add seg to the legend)
+    #add_to_legend(seg)				                (add seg to the legend)
     add_to_legend(seg)
-    #update_compression_order(seg)		(update the ordered dictionary with seg as 1st node)
-    update_compression_order(seg)
+    #update_compression_order(legend[seg])		(update the ordered dictionary)
+    update_compression_order(@legend[seg])
   #end
   end
 
@@ -119,50 +121,37 @@ private
   #	Linear seglistposition lookup
   #
   #  void update_compression_order(String seg)
-  def update_compression_order(seg)
-  #  if seg is already a key in the top-level of the dictionary
-    if @compression_order.has_key? @legend[seg]
-      #seglistposition ← lookup seg in the ordereddictionary
-      segnum = @legend[seg]
+  def update_compression_order(segnum)
+
+    #if seg is already a key in the top-level of the dictionary
+    if @compression_order.has_key? segnum
       indexes = Hash[@compression_order.map.with_index.to_a]
       seglistposition = indexes[segnum]
-      #print_output(seglistposition)
-      print_output(seglistposition)
+    else
+      seglistposition = @compression_order.keys.length
+      @compression_order[segnum] = {"next" => nil, "prev" => nil}
+    end
+
+    #move key to the front if it isn't the only key
+    if @compression_order.keys.length > 1
+      #update the old head’s previous value to seg
+      former_head = @compression_order.find{|key, hash| hash["prev"].nil?}
+      head_key = former_head[0]
+      @compression_order[head_key]["prev"] = segnum
+
       #update the seg’s previous and next nodes’ previous and next values
       segprev = @compression_order[segnum]["prev"]
       segnext = @compression_order[segnum]["next"]
-      @compression_order[segprev]["next"] = segnext
-      @compression_order[segnext]["prev"] = segprev
-      #update the old head’s previous value to seg
-      former_head = @compression_order.find{|key, hash| hash["prev"].nil?}
-      head_key = former_head.keys.first
-      head_key["prev"] = segnum
+      @compression_order[segprev]["next"] = segnext unless segprev.nil?
+      @compression_order[segnext]["prev"] = segprev unless segnext.nil?
+
       #move seg to the front of the list
-      @compression_order[seg]["next"] =
-      @compression_order[seg]["prev"] = null
-    #else
-    else
-      #add seg to the end of the list
-      segnum = @legend[seg]
-
-      if @compression_order.keys.length > 0
-        last_in_list = @compression_order.find{|key, hash| hash["next"].nil?}
-        last_key = last_in_list.keys.first
-        @compression_order[segnum] = {"next" => nil, prev => nil}
-        @compression_order[segnum]["prev"] = last_key
-        @compression_order[segnum]["next"] = nil
-        @compression_order[last_key]["next"] = segnum
-      else
-        @compression_order[segnum] = {"next" => nil, "prev" => nil}
-      end
-
-      #seglistposition ← lookup seg in the ordereddictionary
-      indexes = Hash[@compression_order.map.with_index.to_a]
-      seglistposition = indexes[segnum]
-      #print_output(seglistposition)
-      print_output(seglistposition)
-    #endif
+      @compression_order[segnum]["next"] = head_key
+      @compression_order[segnum]["prev"] = nil
     end
+
+    #print_output(seglistposition)
+    print_output(seglistposition)
   #end
   end
 
@@ -175,11 +164,11 @@ private
   #  void print_output(seglistposition)
   def print_output(seglistposition)
     #print legend[seg]
-    print_legend(seg)
+    puts "Input: #{@legend[@seg]}\n"
     #print_compression_order()
     print_compression_order
     #print seglistposition
-    print_seg_list_position
+    puts "Output: #{seglistposition}."
   #end
   end
 
@@ -192,7 +181,7 @@ private
     #for each key-value pair in the hash concatenate the key and the value into a string
     str = ""
     @legend.each do |key, value|
-      str << "\''#{key}\'':#{value} "
+      str << "'#{key}':#{value} "
     end
     #print the string
     puts str
@@ -205,14 +194,15 @@ private
   #void print_compression_order()
   def print_compression_order
     #beginning with the key with a previous value of null
-    node = @compression_order.find{|key, hash| hash["prev"].nil?}
-
-    while !(node["next"].nil?)
+    head = @compression_order.find{|key, hash| hash["prev"].nil?}
+    nodenum = head.first
+    while !(@compression_order[nodenum]["next"].nil?)
       #Traverse the double linked list by following the next value
-      print node.keys.first
+      puts nodenum
       #print next values until end of list is reached
-      node = @compression_order[node["next"]]
+      nodenum = @compression_order[nodenum]["next"]
     end
+    puts nodenum
     #end
   end
 end
