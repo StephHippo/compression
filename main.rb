@@ -15,6 +15,6 @@ begin
   end
 
   segmentator = Segmentator.new(k, file)
-  segmentator.stream_characters(file)
+  segmentator.stream_characters()
 
 end
