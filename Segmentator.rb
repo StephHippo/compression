@@ -114,7 +114,7 @@ private
 
     #if seg is already a key in the top-level of the dictionary
     if @compression_order.has_key? segnum
-      seglistposition = find_seg_list_position(segnum)
+      seglistposition = seg_list_position(segnum)
       #indexes = Hash[@compression_order.keys.map.with_index.to_a]
       #seglistposition = indexes[segnum]
     else
@@ -157,7 +157,7 @@ private
     #print legend[seg]
     str << "#{@legend[@seg]}\t\t"
     #print_compression_order()
-    str << build_list_string
+    str << list_string
     #print seglistposition
     str << "\t\t#{seglistposition}\n"
     puts str
@@ -183,15 +183,14 @@ private
   #Traverses the ordereddict to give the full compression order
   #Runtime: O(n) where n is the number of segments in the list.
 
-  #TODO: Remove duplicated "puts nodenum"
   #void print_list_string()
-  def build_list_string
+  def list_string
     str = ''
     traverse_list(nil) {|nodenum| str << nodenum.to_s}
     str
   end
 
-  def find_seg_list_position(segnum)
+  def seg_list_position(segnum)
     #pos <-- 0
     pos = 0
     #traverse the linked list
