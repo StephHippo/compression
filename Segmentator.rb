@@ -17,7 +17,7 @@ class Segmentator
   #  Runtime: O(c) where c is the number of characters in the stream
 
   #void stream_characters(File source)
-  def stream_characters(filename)
+  def stream_characters
     #if the source exists
     if File.exists?(@file)
       #open the source
