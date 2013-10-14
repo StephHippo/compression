@@ -8,8 +8,10 @@ begin
   else
     puts "What is the value of k?"
     k = gets
+    k = k.to_i
     puts "What is the name of the file?"
     file = gets
+    file = file.delete("\n")
   end
   puts "k is #{k} and file is #{file}"
   puts "Found file" if File.exists?(file)
