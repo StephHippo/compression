@@ -208,7 +208,7 @@ private
     while (@compression_order[nodenum]["next"] != segnum)
       #increase the position counter
       pos += 1
-      #print next values until end of list is reached
+      #move down the linked list
       nodenum = @compression_order[nodenum]["next"]
     end
     pos += 1
