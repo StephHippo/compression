@@ -52,12 +52,13 @@ private
       if @seg.length != 0
         #calculate_compression(seg)
         calculate_compression(@seg)
-        #seg ← ‘’
-        @seg = ''
-        #calculate_compression(c)
-        calculate_compression(c)
-      #endif
       end
+      #seg ← c
+      @seg = c
+      #calculate_compression(c)
+      calculate_compression(@seg)
+      #seg <-- ''
+      @seg = ''
     elsif @seg.length < @k
       #append c to seg
       @seg << c
@@ -113,8 +114,9 @@ private
 
     #if seg is already a key in the top-level of the dictionary
     if @compression_order.has_key? segnum
-      indexes = Hash[@compression_order.map.with_index.to_a]
-      seglistposition = indexes[segnum]
+      seglistposition = find_seg_list_position(segnum)
+      #indexes = Hash[@compression_order.keys.map.with_index.to_a]
+      #seglistposition = indexes[segnum]
     else
       seglistposition = @compression_order.keys.length
       @compression_order[segnum] = {"next" => nil, "prev" => nil}
@@ -195,6 +197,21 @@ private
       nodenum = @compression_order[nodenum]["next"]
     end
     str<< nodenum.to_s
+    #end
+  end
+
+  def find_seg_list_position(segnum)
+    #beginning with the key with a previous value of null
+    pos = 0
+    head = @compression_order.find{|key, hash| hash["prev"].nil?}
+    nodenum = head.first
+    while (@compression_order[nodenum]["next"] != segnum)
+      #increase the position counter
+      pos += 1
+      #print next values until end of list is reached
+      nodenum = @compression_order[nodenum]["next"]
+    end
+    pos += 1
     #end
   end
 end
