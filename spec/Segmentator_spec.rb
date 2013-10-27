@@ -155,7 +155,18 @@ describe Segmentator do
   end
 
   describe "calculate_compression" do
-    #Check that both are asserted
+    context "both methods are called" do
+      it "should pass seg and segnum to add_to_legend and calculate_compression" do
+        #Check that both are asserted
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
+        @segmentator.instance_eval{instance_variable_set(:@seg,'abc')}
+        Segmentator.publicize(:calculate_compression) do
+          seg = @segmentator.instance_eval{instance_variable_get(:@seg)}
+          @segmentator.should_receive(:update_compression_order)
+          @segmentator.calculate_compression(seg)
+        end
+      end
+    end
   end
 
   describe "add_to_legend" do
