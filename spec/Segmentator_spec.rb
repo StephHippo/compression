@@ -343,15 +343,89 @@ describe Segmentator do
   end
 
   describe "print_output" do
-    #Good Data: seglistposition is a number in the range of a length
+    #1. Good Data: seglistposition is a number in the range of a length
+    context "seglist position is a valid place in the list and has corresponding legend values" do
+      it "should generate a line of the output table" do
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
 
-    #Bad Data: seglistposition is negative
+        legendvals = {'abc' => 1, 'def' => 2, 'ghi' => 3}
+        @segmentator.instance_eval{instance_variable_set(:@legend, legendvals)}
+
+        seg = 'ghi'
+        @segmentator.instance_eval{instance_variable_set(:@seg, seg)}
+
+        co = {1 => {"next" => nil, "prev" => 2},
+              2 => {"next" => 1, "prev" => 3},
+              3 => {"next" => 2, "prev" => nil}}
+        @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+
+        Segmentator.publicize(:print_output) do
+          out = capture_stdout do
+            @segmentator.print_output(2)
+          end
+          out.should == "3\t\t321\t\t2\n"
+        end
+      end
+    end
+
+    #2. Bad Data: seglistposition is negative
+    #1. Good Data: seglistposition is a number in the range of a length
+    context "seglist position is a valid place in the list and has corresponding legend values" do
+      it "should generate a line of the output table" do
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
+
+        legendvals = {'abc' => 1, 'def' => 2, 'ghi' => 3}
+        @segmentator.instance_eval{instance_variable_set(:@legend, legendvals)}
+
+        seg = 'ghi'
+        @segmentator.instance_eval{instance_variable_set(:@seg, seg)}
+
+        co = {1 => {"next" => nil, "prev" => 2},
+              2 => {"next" => 1, "prev" => 3},
+              3 => {"next" => 2, "prev" => nil}}
+        @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+
+        Segmentator.publicize(:print_output) do
+          lambda{@segmentator.print_output(-2)}.should raise_error
+        end
+      end
+    end
   end
 
   describe "print_legend" do
     #Good Data: legend has at least one key-value pair
+    context "legend has some valid values" do
+      it "should output the formatted legend" do
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
+
+        legendvals = {'abc' => 1, 'def' => 2, 'ghi' => 3}
+        @segmentator.instance_eval{instance_variable_set(:@legend, legendvals)}
+
+        Segmentator.publicize(:print_legend) do
+          out = capture_stdout do
+            @segmentator.print_legend()
+          end
+          out.should == "'abc':1 'def':2 'ghi':3 \n"
+        end
+      end
+    end
 
     #Bad Data: legend is empty
+    context "legend has some valid values" do
+      it "should output the formatted legend" do
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
+
+        legendvals = {}
+        @segmentator.instance_eval{instance_variable_set(:@legend, legendvals)}
+
+        Segmentator.publicize(:print_legend) do
+          out = capture_stdout do
+            @segmentator.print_legend()
+          end
+          out.should == "\n"
+        end
+      end
+    end
   end
 
   describe "list_string" do
