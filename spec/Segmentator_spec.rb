@@ -155,6 +155,8 @@ describe Segmentator do
   end
 
   describe "calculate_compression" do
+    #TODO: Label
+    #
     context "both methods are called" do
       it "should pass seg and segnum to add_to_legend and calculate_compression" do
         #Check that both are asserted
@@ -170,13 +172,60 @@ describe Segmentator do
   end
 
   describe "add_to_legend" do
-    #Good Data, seg is a string
+    #1. Structured Basis: legend does not have seg as a key
+    #3. Good Data: seg is a string
+    context "seg is not a legend key" do
+      it "should add the seg to the legend and assign it a segvalue" do
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
+        seg = 'abc'
+        segval = @segmentator.instance_eval{instance_variable_get(:@segvalue)}
+        Segmentator.publicize(:add_to_legend) do
+          @segmentator.add_to_legend(seg)
+        end
+        legend = @segmentator.instance_eval{instance_variable_get(:@legend)}
+        legend.has_key? seg
+        segval2 = @segmentator.instance_eval{instance_variable_get(:@segvalue)}
+        segval2 == segval + 1
+      end
+    end
 
-    #Bad Data, seg is an object
+    #2. Structured Basis: legend has the seg as a key
+    #3. Good Data: seg is a string
+    context "seg is already a legend key" do
+      it "should leave the legend unchanged" do
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
+        h = {'abc' => 1}
+        legend = @segmentator.instance_eval{instance_variable_set(:@legend, h)}
+        legend = @segmentator.instance_eval{instance_variable_get(:@legend)}
+        seg = 'abc'
+        segval = @segmentator.instance_eval{instance_variable_get(:@segvalue)}
+        legend.has_key? seg
+        Segmentator.publicize(:add_to_legend) do
+          @segmentator.add_to_legend(seg)
+        end
+        legend2 = @segmentator.instance_eval{instance_variable_get(:@legend)}
+        legend2 == legend
+        segval2 = @segmentator.instance_eval{instance_variable_get(:@segvalue)}
+        segval2 == segval
+      end
+    end
 
-    #Structured Basis, legend does not have seg as a key
 
-    #Structured Basis, legend has the seg as a key
+    #4. Bad Data: seg is an object
+    context "seg is not a string value" do
+      it "should raise an error" do
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
+        Segmentator.publicize(:add_to_legend) do
+          lambda {@segmentator.add_to_legend(Object.new)}.should raise_error
+        end
+      end
+    end
+
+    #1. Structured Basis: legend does not have seg as a key
+    #2. Structured Basis: legend has the seg as a key
+    #3. Good Data: seg is a string
+    #4. Bad Data: seg is an object
+
   end
 
   describe "update_compression_order" do
