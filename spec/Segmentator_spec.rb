@@ -174,6 +174,8 @@ describe Segmentator do
   describe "add_to_legend" do
     #1. Structured Basis: legend does not have seg as a key
     #3. Good Data: seg is a string
+    #5. Data Flow: Defined-Used adding a legend key
+    #6. Data Flow: Defined-Used incrementing segvalue
     context "seg is not a legend key" do
       it "should add the seg to the legend and assign it a segvalue" do
         @segmentator = Segmentator.new(3, "testcases/mango.txt")
@@ -191,6 +193,8 @@ describe Segmentator do
 
     #2. Structured Basis: legend has the seg as a key
     #3. Good Data: seg is a string
+    #5. Data Flow: Defined-Used adding a legend key
+    #6. Data Flow: Defined-Used incrementing segvalue
     context "seg is already a legend key" do
       it "should leave the legend unchanged" do
         @segmentator = Segmentator.new(3, "testcases/mango.txt")
@@ -210,7 +214,6 @@ describe Segmentator do
       end
     end
 
-
     #4. Bad Data: seg is an object
     context "seg is not a string value" do
       it "should raise an error" do
@@ -221,28 +224,128 @@ describe Segmentator do
       end
     end
 
-    #1. Structured Basis: legend does not have seg as a key
-    #2. Structured Basis: legend has the seg as a key
-    #3. Good Data: seg is a string
-    #4. Bad Data: seg is an object
+    #1. Structured Basis: legend does not have seg as a key     X
+    #2. Structured Basis: legend has the seg as a key           X
+    #3. Good Data: seg is a string                              X
+    #4. Bad Data: seg is an object                              X
+    #5. Data Flow: Defined-Used adding a legend key             X
+    #6. Data Flow: Defined-Used incrementing segvalue           X
 
   end
 
   describe "update_compression_order" do
-    #Structured Basis, compression-order has the key
+    #1. Structured Basis: if first if is true, compression-order has the key
+    #3. Structured Basis: second if is true, compression order is empty
+    #5. Good Data: segnum is a number in the compression order
+    #7. Data Flow: Defined-Used compression order before/after values
+    context "segnum is in the compression order" do
+      it "moves segnum node to the front of the list and outputs the order" do
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
+        legendvals = {'abc' => 1, 'def' => 2}
+        @segmentator.instance_eval{instance_variable_set(:@legend, legendvals)}
+        legend = @segmentator.instance_eval{instance_variable_get(:@legend)}
 
-    #Structured Basis, compression-order doesn't have the key
+        co = {1 => {"next" => nil, "prev" => 2}, 2 => {"next" => 1, "prev" => nil}}
+        @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
 
-    #Strutured Basis, compression order is empty
+        Segmentator.publicize(:update_compression_order) {@segmentator.update_compression_order(1)}
 
-    #Structured Basis, compression order contains at least 1 key
+        co = @segmentator.instance_eval{instance_variable_get(:@compression_order)}
+        co[1]["next"] == 2
+        co[1]["prev"] == nil
+        co[2]["next"] == nil
+        co[2]["prev"] == 1
+      end
+    end
+
+    #1. Structured Basis: if first if is true, compression-order has the key
+    #4. Structured Basis: second if is false, compression order contains at least 1 key
+    #5. Good Data: segnum is a number in the compression order
+    #7. Data Flow: Defined-Used compression order before/after values
+    context "segnum is the only node to be added to the list" do
+      it "adds it to the compression hash and moves to the front" do
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
+
+        co = {1 => {"next" => nil, "prev" => nil}}
+        @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+
+        Segmentator.publicize(:update_compression_order) {@segmentator.update_compression_order(3)}
+
+        co = @segmentator.instance_eval{instance_variable_get(:@compression_order)}
+        co[1]["next"] == nil
+        co[1]["prev"] == nil
+      end
+    end
+
+    #2. Structured Basis: first if is false, compression-order doesn't have the key
+    #3. Structured Basis: second if is true, compression order is empty
+    #5. Good Data: segnum is a number in the compression order
+    #7. Data Flow: Defined-Used compression order before/after values
+    context "segnum is not in the compression order" do
+      it "adds it to the compression hash and moves to the front" do
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
+
+        co = {1 => {"next" => nil, "prev" => 2}, 2 => {"next" => 1, "prev" => nil}}
+        @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+
+        Segmentator.publicize(:update_compression_order) {@segmentator.update_compression_order(3)}
+
+        co = @segmentator.instance_eval{instance_variable_get(:@compression_order)}
+        co[1]["next"] == nil
+        co[1]["prev"] == 2
+        co[2]["next"] == 1
+        co[2]["prev"] == 3
+        co[3]["next"] == 2
+        co[3]["prev"] == nil
+      end
+    end
+
+    #2. Structured Basis: first if is false, compression-order doesn't have the key
+    #4. Structured Basis: second if is false, compression order contains at least 1 key
+    #5. Good Data: segnum is a number that is in the compression order
+    #7. Data Flow: Defined-Used compression order before/after values
+    context "compression order is empty, this will be the first node" do
+      it "adds a single node to the list" do
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
+
+        co = {}
+        @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+
+        Segmentator.publicize(:update_compression_order) {@segmentator.update_compression_order(1)}
+
+        co = @segmentator.instance_eval{instance_variable_get(:@compression_order)}
+        co[1]["next"] == nil
+        co[1]["prev"] == nil
+      end
+    end
+
+    #7. Bad Data: segnum is an Object
+    context "compression order is empty, this will be the first node" do
+      it "adds a single node to the list" do
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
+
+        co = {}
+        @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+
+        Segmentator.publicize(:update_compression_order) do
+          lambda {@segmentator.update_compression_order(Object.new)}.should raise_error
+        end
+      end
+    end
+
+    #1. Structured Basis: first if is true, compression-order has the key               X
+    #2. Structured Basis: first if is false, compression-order doesn't have the key     X
+    #3. Structured Basis: second if is true, compression order is empty                 X
+    #4. Structured Basis: second if is false, compression order contains at least 1 key X
+    #5. Good Data: segnum is a number that is in the compression order                  X
+    #6. Bad Data: segnum is a number not in the legend                                  X
+    #7. Data Flow: Defined-Used compression order before/after values                   X
   end
 
   describe "print_output" do
     #Good Data: seglistposition is a number in the range of a length
 
     #Bad Data: seglistposition is negative
-
   end
 
   describe "print_legend" do
