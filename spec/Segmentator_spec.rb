@@ -187,7 +187,15 @@ describe Segmentator do
     #9. Equivalence Partitioning: seg length is greater than k    X
 
     #Stress Test
-
+    context "given a large stream of characters" do
+      it "should raise an out-of-memory exception" do
+        @segmentator = Segmentator.new(3, "testcases/mango.txt")
+        Segmentator.publicize(:build_segment)do
+          chars = %w[a b c d e f g h j k m n p q r s t u v w x y z A B C D E F G H J K L M N P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 9]
+          100000000.times{@segmentator.build_segment(chars.sample)}
+        end
+      end
+    end
 
   end
 
