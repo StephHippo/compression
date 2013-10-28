@@ -186,6 +186,9 @@ describe Segmentator do
     #8. Bad Data: c is an object (wrong type)   X
     #9. Equivalence Partitioning: seg length is greater than k    X
 
+    #Stress Test
+
+
   end
 
   describe "calculate_compression" do
