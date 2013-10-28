@@ -429,28 +429,129 @@ describe Segmentator do
   end
 
   describe "list_string" do
-    #assert that it calls traverse_list
+    #asserts traverse_list
+    context "given a valid compression list" do
+      it "should output the string representation of the list" do
+        Segmentator.publicize(:list_string) do
+          @segmentator = Segmentator.new(3, "testcases/mango.txt")
+          co = {1 => {"next" => nil, "prev" => 2}, 2 => {"next" => 1, "prev" => nil}}
+          @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+          @segmentator.should_receive(:traverse_list)
+          @segmentator.list_string
+        end
+      end
+    end
+
+    #Good Data: returns the correct string
+    context "given a valid compression list" do
+      it "should output the string representation of the list" do
+        Segmentator.publicize(:list_string) do
+          @segmentator = Segmentator.new(3, "testcases/mango.txt")
+          co = {1 => {"next" => nil, "prev" => 2}, 2 => {"next" => 1, "prev" => nil}}
+          @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+          @segmentator.list_string.should == "21"
+        end
+      end
+    end
+
+    #Bad Data: compromised list with 2 "head" nodes
+    context "given a compromised compression list" do
+      it "should output the string representation of the list" do
+        Segmentator.publicize(:list_string) do
+          @segmentator = Segmentator.new(3, "testcases/mango.txt")
+          co = {1 => {"next" => nil, "prev" => nil}, 2 => {"next" => 1, "prev" => nil}}
+          @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+          lambda{@segmentator.list_string}.should raise_error
+        end
+      end
+    end
   end
 
   describe "seg_list_position" do
-    #Bad Data: segnum is not a number
+    #asserts traverse_list
+    context "given a valid compression list" do
+      it "should assert traverse list" do
+        Segmentator.publicize(:seg_list_position) do
+          @segmentator = Segmentator.new(3, "testcases/mango.txt")
+          co = {1 => {"next" => nil, "prev" => 2}, 2 => {"next" => 1, "prev" => nil}}
+          @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+          @segmentator.should_receive(:traverse_list)
+          @segmentator.seg_list_position(1)
+        end
+      end
+    end
 
     #Good Data: segnum is a number in the list
+    context "given a valid compression list" do
+      it "should return the order of the segment in the list" do
+        Segmentator.publicize(:seg_list_position) do
+          @segmentator = Segmentator.new(3, "testcases/mango.txt")
+          co = {1 => {"next" => nil, "prev" => 2}, 2 => {"next" => 1, "prev" => nil}}
+          @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+          @segmentator.seg_list_position(1)
+        end
+      end
+    end
 
-    #Error Guessing: segnum is a number not in the list
-
-    #assert that it calls traverse_list
-
+    #Bad Data: segnum is not a number
+    context "given an object instead of an integer" do
+      it "should raise an error" do
+        Segmentator.publicize(:seg_list_position) do
+          @segmentator = Segmentator.new(3, "testcases/mango.txt")
+          co = {1 => {"next" => nil, "prev" => 2}, 2 => {"next" => 1, "prev" => nil}}
+          @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+          lambda{@segmentator.seg_list_position(Object.new)}.should raise_error
+        end
+      end
+    end
   end
 
   describe "traverse_list" do
-    #Structured Basis: enters the while loop at least once
+    #1. Structured Basis: while loop walks down the whole list
+    #4. Good Data: Compression order is a graph
+    context "the value we're looking for is the tail of the list" do
+      it "loops through the entire list" do
+        Segmentator.publicize(:traverse_list) do
+          ct = 0
+          @segmentator = Segmentator.new(3, "testcases/mango.txt")
+          co = {1 => {"next" => nil, "prev" => 2}, 2 => {"next" => 1, "prev" => nil}}
+          @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+          @segmentator.traverse_list(nil){|nodenum| ct += 1}.should be 2
+        end
+      end
+    end
 
-    #Structured Basis: never enters the while loop
+    #2. Structured Basis: never enters the while loop
+    #4. Good Data: Compression order is a graph
+    context "the list has only one node" do
+      it "should never enter the list" do
+        Segmentator.publicize(:traverse_list) do
+          ct = 0
+          @segmentator = Segmentator.new(3, "testcases/mango.txt")
+          co = {1 => {"next" => nil, "prev" => nil}}
+          @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+          @segmentator.traverse_list(nil){|nodenum| ct += 1}.should be 1
+        end
+      end
+    end
 
-    #Bad Data: Compvalue is an object
+    #3. Bad Data: Compvalue is an object
+    context "the list is empty" do
+      it "should never enter the list" do
+        Segmentator.publicize(:traverse_list) do
+          ct = 0
+          @segmentator = Segmentator.new(3, "testcases/mango.txt")
+          co = {}
+          @segmentator.instance_eval{instance_variable_set(:@compression_order, co)}
+          lambda{@segmentator.traverse_list(nil){|nodenum| ct += 1}}.should raise_error
+        end
+      end
+    end
 
-    #Good Data: Compression order is a graph
+    #1. Structured Basis: enters the while loop at least once
+    #2. Structured Basis: never enters the while loop
+    #3. Bad Data: Compvalue is an object
+    #4. Good Data: Compression order is a graph
 
   end
 
