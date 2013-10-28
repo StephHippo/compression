@@ -1,30 +1,31 @@
+require 'simplecov'
+SimpleCov.start
 require './Segmentator.rb'
 require './publicize.rb'
 require './spec/spec_helper.rb'
 
 
 describe Segmentator do
-  before_each do
+  before(:each) do
     @segmentator = Segmentator.new(3, "testcases/mango.txt")
   end
 
   describe "stream_characters" do
 
     #asserts print_legend
-    context "calls print_legend" do
+    context "checking assert print_legend" do
       it "should print the legend after streaming all characters" do
         #Check that both are asserted
         Segmentator.publicize(:stream_characters) do
-          seg = @segmentator.instance_eval{instance_variable_get(:@seg)}
           @segmentator.should_receive(:print_legend)
-          @segmentator.stream_characters()
+          @segmentator.stream_characters
         end
       end
     end
 
     #asserts update_compression_order
     context "calls calculate_compression" do
-      it "should call calculate compression on the final seg" do    #Check that both are asserted
+      it "should call calculate compression on the final seg" do
         @segmentator.instance_eval{instance_variable_set(:@seg,'abc')}
         Segmentator.publicize(:calculate_compression) do
           seg = @segmentator.instance_eval{instance_variable_get(:@seg)}
@@ -37,21 +38,29 @@ describe Segmentator do
     #Structured Basis: each_char loop
     #Good Data
     it "streams characters of a file and compresses segments of size k" do
-      @segmentator.stream_characters()
+      out = capture_stdout do
+        @segmentator.stream_characters()
+      end
+      out.should == "1\t\t1\t\t0\n2\t\t21\t\t1\n'Man':1 'go':2 \n"
     end
 
     #Structured Basis: Nothing to stream so skips each_char loop
     #Bad Data: empty text
     it "streams characters of a file and compresses segments of size k" do
       @segmentator = Segmentator.new(0, "testcases/empty.txt")
-      @segmentator.stream_characters()
+      out = capture_stdout do
+        @segmentator.stream_characters()
+      end
+      out.should == "\n"
     end
 
     #Structured Basis: first if is true
     #Bad Data: nonexistent file
-    it "streams characters of a new file and compresses segments of size k" do
-      @segmentator = Segmentator.new(3, "testcases/nonexistentfile.txt")
-      lambda {@segmentator.stream_characters()}.should raise_error
+    context "tries to stream a nonexistent file" do
+      it "should raise an error and exit" do
+        @segmentator = Segmentator.new(3, "testcases/nonexistentfile.txt")
+        lambda {@segmentator.stream_characters()}.should raise_error
+      end
     end
 
     #Error guessing, inputting data out of order
