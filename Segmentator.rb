@@ -15,103 +15,67 @@ class Segmentator
 
   #Passes each character of the file source to be added to a segment
   #  Runtime: O(c) where c is the number of characters in the stream
-
-  #void stream_characters(File source)
   def stream_characters
-    #if the source exists
     if File.exists?(@file)
-      #open the source
       f = File.open(@file)
-      #stream each character to build_segment(char c)
       f.each_char {|c| build_segment(c)}
-      #*Added code to compensate for no EOF character*
       calculate_compression(@seg) unless @seg.length == 0
       print_legend
-    #else
     else
-      #raise an error that “No source was found”
       raise "No source was found"
-      #exit the program
       exit
-    #endif
     end
-  #end
   end
 
-private
-#Builds the newest segment value character by character and checks for punctuation characters
-#  Runtime: O(n)
-#	 Constant building of the segments
-#  calculate_compression runs in linear time as explained below
-
-  #void build_segment(char c)
+#private
+	#Builds the newest segment value character by character and checks for punctuation characters
+	#  Runtime: O(n)
+	#	 Constant building of the segments
+	#  calculate_compression runs in linear time as explained below
   def build_segment(c)
-    #if c is a punctuation character
-    if c =~ /[[:punct:]]|\s/
-      #if |seg| != 0
-      if @seg.length != 0
-        #calculate_compression(seg)
-        calculate_compression(@seg)
-      end
-      #seg ← c
+	  raise "Segment length is greater than limit k, #{@seg} and #{@k}" unless @seg.length <= @k
+	  raise "More than one character passed to build_segment: #{c}" unless c.length == 1
+	  if c =~ /[[:punct:]]|\s/
+      calculate_compression(@seg) unless @seg.length == 0
       @seg = c
-      #calculate_compression(c)
       calculate_compression(@seg)
-      #seg <-- ''
       @seg = ''
     elsif @seg.length < @k
-      #append c to seg
       @seg << c
-    elsif @seg.length == @k
-      #calculate_compression(seg)
+		elsif @seg.length == @k
       calculate_compression(@seg)
-      #seg ← c
       @seg = c
-    #endif
-    end
+		end
   end
 
   # Whenever you add to the legend, you must also update the compression order in the ordered dictionary, so encapsulated to reduce duplicated code.
   # Runtime: O(n)
   #  Constant Hash insert for legend
   #  Linear time for update_compression_order, explained below
-  #
-  #  void calculate_compression(seg)
   def calculate_compression(seg)
-    #add_to_legend(seg)				                (add seg to the legend)
     add_to_legend(seg)
-    #update_compression_order(legend[seg])		(update the ordered dictionary)
     update_compression_order(@legend[seg])
-  #end
   end
 
   #Inserts a new seg to the legend and increment the segment key number. If the segment is already in the hash, it does nothing
   #Runtime: O(1)
   #Constant Hash insertion
-  #
-  #void add_to_legend(String seg)
   def add_to_legend(seg)
+    raise "Segment is not a string" unless (seg.is_a? String)
     #if seg isn’t already a key in the Hash legend
     unless @legend.has_key? seg
-      #legend[seg] ← segvalue
       @legend[seg] = @segvalue
-      #increment the segvalue by 1
       @segvalue += 1
-    #endif
     end
-  #end
   end
-
 
   # The compression order is a nested hash to represent an ordereddict. The first set of keys each map to another hash that contain a next and previous key that store a value of the next seg in the list
   # Run_time: O(n) where n is the number of segments in the ordereddict
   #	Constant ordered dictionary lookup
   #	Constant ordered dictionary update
   #	Linear seglistposition lookup
-  #
-  #  void update_compression_order(String seg)
   def update_compression_order(segnum)
-
+		raise "Not a valid segment number #{segnum}." unless ((segnum.is_a? Fixnum) && (segnum >= 0))
     #if seg is already a key in the top-level of the dictionary
     if @compression_order.has_key? segnum
       seglistposition = seg_list_position(segnum)
@@ -140,9 +104,7 @@ private
       @compression_order[segnum]["prev"] = nil
     end
 
-    #print_output(seglistposition)
     print_output(seglistposition)
-  #end
   end
 
   #prints out both the legend and the compressed code order
@@ -150,15 +112,11 @@ private
   #	constant access and printing for printing an element in the legend
   #	linear printing of the most recent compressed list
   #	constant printing of the seglistposition (already passed in)
-  #
-  #  void print_output(seglistposition)
   def print_output(seglistposition)
+		raise "Invalid list position" unless ((seglistposition >= 0) && (seglistposition.is_a? Fixnum))
     str = ""
-    #print legend[seg]
     str << "#{@legend[@seg]}\t\t"
-    #print_compression_order()
     str << list_string
-    #print seglistposition
     str << "\t\t#{seglistposition}\n"
     puts str
   #end
@@ -167,54 +125,33 @@ private
 
   # prints legend by traversing a double linked list represented by the ordered dictionary
   # Runtime: O(n) where n is the number of segments in the ordereddict
-  #
-  #void print_legend()
   def print_legend
-    #for each key-value pair in the hash concatenate the key and the value into a string
     str = ""
     @legend.each do |key, value|
       str << "'#{key}':#{value} "
     end
-    #print the string
     puts str
-  #end
   end
 
   #Traverses the ordereddict to give the full compression order
   #Runtime: O(n) where n is the number of segments in the list.
-
-  #void print_list_string()
   def list_string
     str = ''
     traverse_list(nil) {|nodenum| str << nodenum.to_s}
     str
   end
 
+  #return the position of the number in the list
   def seg_list_position(segnum)
-    #pos <-- 0
     pos = 0
-    #traverse the linked list
     traverse_list(segnum) {|nodenum| pos += 1}
-    #return the position
     pos
   end
 
   def traverse_list(compvalue)
-    #get the head node number
     head = @compression_order.find{|key, hash| hash["prev"].nil?}
     nodenum = head.first
 
-    #This pattern breaks the compression order. Requires an additional yield
-    #Chose to go with the code with one less yielding
-
-    #while true
-    #  nodenum = @compression_order[nodenum]["next"]
-    #  break if nodenum == compvalue
-    #  yield nodenum
-    #end
-    #yield nodenum
-
-    #walk down the next nodes until there you match the comparing value
     while(@compression_order[nodenum]["next"] != compvalue)
       yield nodenum
       nodenum = @compression_order[nodenum]["next"]
